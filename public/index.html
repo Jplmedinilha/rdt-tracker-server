@@ -265,6 +265,10 @@
       <source src="sounds/coin.mp3" type="audio/mpeg" />
       Browser cannot support .mp3 audio
     </audio>
+    <audio id="hsrSound" preload="auto">
+      <source src="sounds/hsr.mp3" type="audio/mpeg" />
+      Browser cannot support .mp3 audio
+    </audio>
 
     <div id="wsIndicator"></div>
 
@@ -407,17 +411,31 @@
           origin: { y: 0.6 },
         });
 
-        if (somAtivo) {
-          const sound = document.getElementById("coinSound");
-          sound.currentTime = 0;
-          sound.play().catch((e) => console.warn("Som bloqueado:", e));
-        }
         console.log(data.log);
 
-        showToast(
-          `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
-          30000
-        );
+        if (data.log[0].itemName == "Hazelmere's signet ring") {
+          hsrSound;
+          const sound = document.getElementById("hsrSound");
+          sound.currentTime = 0;
+          sound.play().catch((e) => console.warn("Som bloqueado:", e));
+          setInterval(() => {
+            confetti({
+              particleCount: 500,
+              spread: 150,
+              origin: { y: 0.9 },
+            });
+          }, 3000);
+        } else {
+          if (somAtivo) {
+            const sound = document.getElementById("coinSound");
+            sound.currentTime = 0;
+            sound.play().catch((e) => console.warn("Som bloqueado:", e));
+          }
+          showToast(
+            `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
+            30000
+          );
+        }
       });
 
       function updateBar(valor) {
@@ -480,7 +498,7 @@
               `;
         const tbody = table.querySelector("tbody");
 
-        data.reverse().forEach((log) => {
+        data?.reverse().forEach((log) => {
           const row = document.createElement("tr");
           row.innerHTML = `
                       <td>${log.time}</td>
