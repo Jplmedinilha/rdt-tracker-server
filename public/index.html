@@ -396,7 +396,6 @@
       });
 
       socket.on("inventoryUpdate", function (data) {
-        console.log(data);
         updateTable("slayerTable", data.slayer);
         updateTable("serenTable", data.seren);
         updateLog("logTable", data.log);
@@ -413,8 +412,12 @@
           sound.currentTime = 0;
           sound.play().catch((e) => console.warn("Som bloqueado:", e));
         }
+        console.log(data.log);
 
-        showToast("New data has arrived!");
+        showToast(
+          `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
+          30000
+        );
       });
 
       function updateBar(valor) {
