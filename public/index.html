@@ -1,53 +1,53 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Inventário do Usuário</title>
     <style>
-        body {
-            background-color: #2c2f36;
-            color: #f5f5f5;
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-        }
-        .container {
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        table {
-            width: 80%;
-            margin: 20px 0;
-            border-collapse: collapse;
-            background-color: #3e444a;
-            border-radius: 8px;
-        }
-        th, td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid #555;
-        }
-        th {
-            background-color: #4c5158;
-        }
-        td img {
-            max-width: 40px;
-        }
-        .table-title {
-            text-align: center;
-            font-size: 1.5em;
-            margin: 20px 0;
-        }
+      body {
+        background-color: #2c2f36;
+        color: #f5f5f5;
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      table {
+        width: 80%;
+        margin: 20px 0;
+        border-collapse: collapse;
+        background-color: #3e444a;
+        border-radius: 8px;
+      }
+      th,
+      td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #555;
+      }
+      th {
+        background-color: #4c5158;
+      }
+      td img {
+        max-width: 40px;
+      }
+      .table-title {
+        text-align: center;
+        font-size: 1.5em;
+        margin: 20px 0;
+      }
     </style>
-</head>
-<body>
-
-<div class="container">
-    <h1>Inventário de Itens</h1>
-    <div id="tables">
+  </head>
+  <body>
+    <div class="container">
+      <h1>Inventário de Itens</h1>
+      <div id="tables">
         <div class="table-title">Slayer</div>
         <table id="slayerTable"></table>
 
@@ -56,27 +56,27 @@
 
         <div class="table-title">Log</div>
         <table id="logTable"></table>
+      </div>
     </div>
-</div>
 
-<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-<script>
-    let token = "meu_token_secreto";
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script>
+      let token = "meu_token_secreto";
 
-    const socket = io("https://rdt-tracker-server.onrender.com", {
+      const socket = io("https://rdt-tracker-server.onrender.com", {
         query: {
-            token: token
-        }
-    });
+          token: token,
+        },
+      });
 
-    socket.on('inventoryUpdate', function (data) {
+      socket.on("inventoryUpdate", function (data) {
         console.log(data);
-        updateTable('slayerTable', data.slayer);
-        updateTable('serenTable', data.seren);
-        updateLog('logTable', data.log);
-    });
+        updateTable("slayerTable", data.slayer);
+        updateTable("serenTable", data.seren);
+        updateLog("logTable", data.log);
+      });
 
-    function updateTable(tableId, data) {
+      function updateTable(tableId, data) {
         const table = document.getElementById(tableId);
         table.innerHTML = `
             <thead>
@@ -89,22 +89,22 @@
             </thead>
             <tbody></tbody>
         `;
-        const tbody = table.querySelector('tbody');
+        const tbody = table.querySelector("tbody");
 
         for (const itemName in data) {
-            const item = data[itemName];
-            const row = document.createElement('tr');
-            row.innerHTML = `
+          const item = data[itemName];
+          const row = document.createElement("tr");
+          row.innerHTML = `
                 <td>${itemName}</td>
                 <td>${item.qty}</td>
                 <td>${item.hits}</td>
                 <td><img src="img/${item.img}" alt="${itemName}"></td>
             `;
-            tbody.appendChild(row);
+          tbody.appendChild(row);
         }
-    }
+      }
 
-    function updateLog(tableId, data) {
+      function updateLog(tableId, data) {
         const table = document.getElementById(tableId);
         table.innerHTML = `
             <thead>
@@ -117,19 +117,19 @@
             </thead>
             <tbody></tbody>
         `;
-        const tbody = table.querySelector('tbody');
+        const tbody = table.querySelector("tbody");
 
-        data.forEach(log => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
+        data.forEach((log) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
                 <td>${log.time}</td>
                 <td>${log.itemName}</td>
                 <td>${log.quantity}</td>
                 <td>${log.method}</td>
             `;
-            tbody.appendChild(row);
+          tbody.appendChild(row);
         });
-    }
-</script>
-</body>
+      }
+    </script>
+  </body>
 </html>

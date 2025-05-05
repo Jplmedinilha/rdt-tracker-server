@@ -1,42 +1,42 @@
-const express = require('express');
-const http = require('http');
-const { Server } = require('socket.io');
-const path = require('path');
+const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
+const path = require("path");
 const cors = require("cors");
+
+const lastData = {};
 
 const app = express();
 app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
-    cors: {
-      origin: "*", 
-      methods: ["GET", "POST"]
-    }
-  });
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
-const VALID_TOKEN = 'meu_token_secreto';
+const VALID_TOKEN = "meu_token_secreto";
 
-app.use(express.static(path.join(__dirname, 'public')));
-
+app.use(express.static(path.join(__dirname, "public")));
 
 io.on("connection", (socket) => {
-    const token = socket.handshake.query.token;
-    console.log(token)
-    if (token != VALID_TOKEN) {
-      return 
-    }
-    socket.on("updateInventory", (data) => {
+  const token = socket.handshake.query.token;
+  if (token != VALID_TOKEN) {
+    return;
+  }
+  io.emit("inventoryUpdate", lastData);
 
-      console.log(data)
-      io.emit("inventoryUpdate", data); 
-    });
+  socket.on("updateInventory", (data) => {
+    lastData = data;
+    io.emit("inventoryUpdate", lastData);
   });
-  
+});
 
-io.on('updateInventory', (socket) => {
-  console.log(socket)
+io.on("updateInventory", (socket) => {
+  console.log(socket);
 });
 
 server.listen(3000, () => {
-  console.log('Servidor ouvindo em http://localhost:3000');
+  console.log("Servidor ouvindo em http://localhost:3000");
 });
