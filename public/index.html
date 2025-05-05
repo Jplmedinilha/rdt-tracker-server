@@ -11,8 +11,11 @@
         font-family: Arial, sans-serif;
         margin: 0;
         padding: 0;
-        height: 100vh;
-        overflow: hidden;
+      }
+
+      html,
+      body {
+        height: 100%;
       }
 
       .container {
@@ -148,9 +151,130 @@
           filter: brightness(1.3);
         }
       }
+
+      @media (max-width: 768px) {
+        .container {
+          display: flex;
+          flex-direction: column;
+          padding: 10px;
+          gap: 10px;
+          height: auto;
+          overflow-y: auto;
+        }
+
+        .table-wrapper {
+          max-height: 400px;
+        }
+
+        .table-title {
+          font-size: 1em;
+        }
+
+        .progress-container {
+          padding: 10px 10px;
+        }
+
+        .progress-bar {
+          height: 20px;
+          font-size: 12px;
+        }
+
+        .progress-icon {
+          width: 16px;
+          height: 16px;
+        }
+
+        .progress-text {
+          font-size: 12px;
+          text-align: center;
+        }
+
+        #logWrapper {
+          order: 3;
+        }
+      }
+      #wsIndicator {
+        position: fixed;
+        top: 15px;
+        right: 10px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: red;
+        z-index: 9999;
+        box-shadow: 0 0 4px red;
+        animation: pulse 2s infinite ease-in-out;
+        opacity: 0.9;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 4px currentColor;
+        }
+        50% {
+          transform: scale(1.1);
+          box-shadow: 0 0 6px currentColor;
+        }
+      }
+
+      .fade-in {
+        animation: fadeIn 0.6s ease-in;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(-5px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background-color: rgba(100, 100, 100, 0.3);
+        border-radius: 10px;
+        transition: background-color 0.3s ease;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(100, 100, 100, 0.5);
+      }
+
+      /* Firefox */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
+      }
     </style>
   </head>
   <body>
+    <audio id="coinSound" preload="auto">
+      <source src="sounds/coin.mp3" type="audio/mpeg" />
+      Browser cannot support .mp3 audio
+    </audio>
+
+    <div id="wsIndicator"></div>
+
+    <button
+      id="enableSound"
+      style="position: fixed; top: 10px; right: 50px; z-index: 9999"
+    >
+      Enable sound 🔊
+    </button>
+
     <div class="container">
       <div id="slayerWrapper" class="table-wrapper">
         <div class="table-title">Slayer</div>
@@ -213,9 +337,45 @@
       </div>
     </div>
 
+    <div
+      id="toast"
+      style="
+        display: none;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #333;
+        color: #fff;
+        padding: 10px 20px;
+        border-radius: 6px;
+        z-index: 9999;
+        overflow: hidden;
+        font-size: 14px;
+      "
+    >
+      <div id="toastMessage">Mensagem</div>
+      <div
+        id="toastBar"
+        style="
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          height: 4px;
+          background: limegreen;
+          width: 100%;
+          transition: width linear;
+        "
+      ></div>
+    </div>
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
     <script>
       let token = "meu_token_secreto";
+
+      let somAtivo = false;
 
       const socket = io("https://rdt-tracker-server.onrender.com", {
         query: {
@@ -223,11 +383,38 @@
         },
       });
 
+      const wsIndicator = document.getElementById("wsIndicator");
+
+      socket.on("connect", () => {
+        wsIndicator.style.backgroundColor = "green";
+        wsIndicator.style.boxShadow = "0 0 8px green";
+      });
+
+      socket.on("disconnect", () => {
+        wsIndicator.style.backgroundColor = "red";
+        wsIndicator.style.boxShadow = "0 0 8px red";
+      });
+
       socket.on("inventoryUpdate", function (data) {
         console.log(data);
         updateTable("slayerTable", data.slayer);
         updateTable("serenTable", data.seren);
         updateLog("logTable", data.log);
+
+        // Lançar confetes
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { y: 0.6 },
+        });
+
+        if (somAtivo) {
+          const sound = document.getElementById("coinSound");
+          sound.currentTime = 0;
+          sound.play().catch((e) => console.warn("Som bloqueado:", e));
+        }
+
+        showToast("New data has arrived!");
       });
 
       function updateBar(valor) {
@@ -250,27 +437,27 @@
       function updateTable(tableId, data) {
         const table = document.getElementById(tableId);
         table.innerHTML = `
-            <thead>
-                <tr>
-                    <th></th>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Hits</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `;
+                  <thead>
+                      <tr>
+                          <th></th>
+                          <th>Item</th>
+                          <th>Qty</th>
+                          <th>Hits</th>
+                      </tr>
+                  </thead>
+                  <tbody></tbody>
+              `;
         const tbody = table.querySelector("tbody");
 
         for (const itemName in data) {
           const item = data[itemName];
           const row = document.createElement("tr");
           row.innerHTML = `
-                <td><img src="img/${item.img}" alt="${itemName}"></td>
-                <td>${itemName}</td>
-                <td>${item.qty}</td>
-                <td>${item.hits}</td>
-            `;
+                      <td><img src="img/${item.img}" alt="${itemName}"></td>
+                      <td>${itemName}</td>
+                      <td>${item.qty}</td>
+                      <td>${item.hits}</td>
+                  `;
           tbody.appendChild(row);
         }
       }
@@ -278,26 +465,26 @@
       function updateLog(tableId, data) {
         const table = document.getElementById(tableId);
         table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Hour</th>
-                    <th>Item</th>
-                    <th>Qty</th>
-                    <th>Method</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        `;
+                  <thead>
+                      <tr>
+                          <th>Hour</th>
+                          <th>Item</th>
+                          <th>Qty</th>
+                          <th>Method</th>
+                      </tr>
+                  </thead>
+                  <tbody></tbody>
+              `;
         const tbody = table.querySelector("tbody");
 
         data.reverse().forEach((log) => {
           const row = document.createElement("tr");
           row.innerHTML = `
-                <td>${log.time}</td>
-                <td>${log.itemName}</td>
-                <td>${log.quantity}</td>
-                <td>${log.method}</td>
-            `;
+                      <td>${log.time}</td>
+                      <td>${log.itemName}</td>
+                      <td>${log.quantity}</td>
+                      <td>${log.method}</td>
+                  `;
           tbody.appendChild(row);
         });
 
@@ -324,6 +511,77 @@
         });
 
         logCount.textContent = `Items displayed: ${visiveis} `;
+      }
+
+      document
+        .getElementById("enableSound")
+        .addEventListener("click", function () {
+          const sound = document.getElementById("coinSound");
+          const button = document.getElementById("enableSound");
+
+          if (!somAtivo) {
+            sound
+              .play()
+              .then(() => {
+                somAtivo = true;
+                button.innerHTML = "Disable sound 🔇";
+                showToast("Audio enabled");
+              })
+              .catch((e) => {
+                console.error(e);
+              });
+          } else {
+            somAtivo = false;
+            button.innerHTML = "Enable sound 🔊";
+            showToast("Audio disabled");
+          }
+        });
+
+      let currentSlayerIndex = 0;
+      let currentSerenIndex = 0;
+
+      function scrollNextRow(tableId, currentIndexRef) {
+        const table = document.getElementById(tableId);
+        const rows = table.querySelectorAll("tbody tr");
+
+        if (rows.length === 0) return;
+
+        if (currentIndexRef.index >= rows.length) {
+          currentIndexRef.index = 0;
+        }
+
+        const row = rows[currentIndexRef.index];
+        row.scrollIntoView({ behavior: "smooth", block: "center" });
+        currentIndexRef.index++;
+      }
+
+      const slayerRef = { index: 0 };
+      const serenRef = { index: 0 };
+
+      setInterval(() => {
+        scrollNextRow("slayerTable", slayerRef);
+        scrollNextRow("serenTable", serenRef);
+      }, 60 * 1000);
+
+      function showToast(message, duration = 3000) {
+        const toast = document.getElementById("toast");
+        const toastMessage = document.getElementById("toastMessage");
+        const toastBar = document.getElementById("toastBar");
+
+        toastMessage.textContent = message;
+        toast.style.display = "block";
+        toastBar.style.transition = "none";
+        toastBar.style.width = "100%";
+
+        // Forçar reflow para reiniciar a transição
+        void toastBar.offsetWidth;
+
+        toastBar.style.transition = `width ${duration}ms linear`;
+        toastBar.style.width = "0%";
+
+        setTimeout(() => {
+          toast.style.display = "none";
+        }, duration);
       }
     </script>
   </body>
