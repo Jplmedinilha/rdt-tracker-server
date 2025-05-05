@@ -377,6 +377,20 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
     <script>
+      if (Notification.permission !== "granted") {
+        Notification.requestPermission();
+      }
+
+      function notifyMe(msg, silent = true) {
+        if (Notification.permission === "granted") {
+          new Notification("Rdt tracker", {
+            body: msg,
+            icon: "img/rdt.png", // opcional
+            silent: silent,
+          });
+        }
+      }
+
       let token = "meu_token_secreto";
 
       let somAtivo = false;
@@ -414,7 +428,6 @@
         console.log(data.log);
 
         if (data.log[0].itemName == "Hazelmere's signet ring") {
-          hsrSound;
           const sound = document.getElementById("hsrSound");
           sound.currentTime = 0;
           sound.play().catch((e) => console.warn("Som bloqueado:", e));
@@ -425,17 +438,22 @@
               origin: { y: 0.9 },
             });
           }, 3000);
+          notifyMe("Brooooooooooooooo HSR LMAO", false);
         } else {
           if (somAtivo) {
             const sound = document.getElementById("coinSound");
             sound.currentTime = 0;
             sound.play().catch((e) => console.warn("Som bloqueado:", e));
           }
-          showToast(
+          notifyMe(
             `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
-            30000
+            true
           );
         }
+        showToast(
+          `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
+          30000
+        );
       });
 
       function updateBar(valor) {
