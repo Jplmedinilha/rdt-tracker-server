@@ -4,7 +4,7 @@ const { Server } = require("socket.io");
 const path = require("path");
 const cors = require("cors");
 
-const lastData = {};
+let lastData = {};
 
 const app = express();
 app.use(cors());
@@ -31,10 +31,6 @@ io.on("connection", (socket) => {
     lastData = data;
     io.emit("inventoryUpdate", lastData);
   });
-});
-
-io.on("updateInventory", (socket) => {
-  console.log(socket);
 });
 
 server.listen(3000, () => {
