@@ -381,11 +381,11 @@
         Notification.requestPermission();
       }
 
-      function notifyMe(msg, silent = true) {
+      function notifyMe(msg, silent = true, img = "img/rdt.png") {
         if (Notification.permission === "granted") {
           new Notification("Rdt tracker", {
             body: msg,
-            icon: "img/rdt.png", // opcional
+            icon: img,
             silent: silent,
           });
         }
@@ -418,14 +418,12 @@
         updateTable("serenTable", data.seren);
         updateLog("logTable", data.log);
 
-        // Lançar confetes
+        //  confetes
         confetti({
           particleCount: 150,
           spread: 70,
           origin: { y: 0.6 },
         });
-
-        console.log(data.log);
 
         if (data.log[0].itemName == "Hazelmere's signet ring") {
           const sound = document.getElementById("hsrSound");
@@ -438,16 +436,20 @@
               origin: { y: 0.9 },
             });
           }, 3000);
-          notifyMe("Brooooooooooooooo HSR LMAO", false);
+          notifyMe("Brooooooooooooooo HSR LMAO", false, "img/hsr.png");
         } else {
           if (somAtivo) {
             const sound = document.getElementById("coinSound");
             sound.currentTime = 0;
             sound.play().catch((e) => console.warn("Som bloqueado:", e));
           }
+
+          const img = data.slayer[data.log[0].itemName].img ?? "img/rdt.png";
+
           notifyMe(
             `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
-            true
+            true,
+            `img/${img}`
           );
         }
         showToast(
@@ -465,7 +467,6 @@
         fill.style.width = percent + "%";
         text.textContent = `${valor.toLocaleString()} / 16,000`;
 
-        // Ativar ou desativar animação heartbeat
         if (valor > 0 && valor < max) {
           fill.classList.add("animated");
         } else {
@@ -612,7 +613,6 @@
         toastBar.style.transition = "none";
         toastBar.style.width = "100%";
 
-        // Forçar reflow para reiniciar a transição
         void toastBar.offsetWidth;
 
         toastBar.style.transition = `width ${duration}ms linear`;
