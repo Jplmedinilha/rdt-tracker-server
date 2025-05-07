@@ -31,6 +31,10 @@ io.on("connection", (socket) => {
     lastData = data;
     io.emit("inventoryUpdate", lastData);
   });
+
+  socket.on("updateCurrentStats", (data) => {
+    io.emit("updateCurrentStats", data);
+  });
 });
 
 server.listen(3000, () => {
