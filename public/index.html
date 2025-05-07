@@ -278,7 +278,12 @@
     >
       Enable sound 🔊
     </button>
-
+    <button
+      onclick="toggleFullscreen()"
+      style="position: fixed; top: 10px; right: 180px; z-index: 9999"
+    >
+      🔳 Fullscreen
+    </button>
     <div class="container">
       <div id="slayerWrapper" class="table-wrapper">
         <div class="table-title">Slayer</div>
@@ -610,18 +615,70 @@
 
         toastMessage.textContent = message;
         toast.style.display = "block";
+
         toastBar.style.transition = "none";
         toastBar.style.width = "100%";
 
-        void toastBar.offsetWidth;
-
-        toastBar.style.transition = `width ${duration}ms linear`;
-        toastBar.style.width = "0%";
+        setTimeout(() => {
+          toastBar.style.transition = `width ${duration}ms linear`;
+          toastBar.style.width = "0%";
+        }, 50);
 
         setTimeout(() => {
           toast.style.display = "none";
         }, duration);
       }
+
+      function toggleFullscreen() {
+        const doc = document.documentElement;
+
+        if (!document.fullscreenElement) {
+          if (doc.requestFullscreen) {
+            doc.requestFullscreen();
+          } else if (doc.webkitRequestFullscreen) {
+            // Safari
+            doc.webkitRequestFullscreen();
+          } else if (doc.msRequestFullscreen) {
+            // IE/Edge antigo
+            doc.msRequestFullscreen();
+          }
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          }
+        }
+      }
+
+      let wakeLock = null;
+
+      async function requestWakeLock() {
+        try {
+          if ("wakeLock" in navigator) {
+            wakeLock = await navigator.wakeLock.request("screen");
+            console.log("Wake Lock ativado");
+
+            wakeLock.addEventListener("release", () => {
+              console.log("Wake Lock liberado");
+            });
+          } else {
+            console.warn("Wake Lock API não suportada neste navegador.");
+          }
+        } catch (err) {
+          console.error(`${err.name}, ${err.message}`);
+        }
+      }
+
+      document.addEventListener("visibilitychange", () => {
+        if (wakeLock !== null && document.visibilityState === "visible") {
+          requestWakeLock();
+        }
+      });
+
+      window.addEventListener("load", requestWakeLock);
     </script>
   </body>
 </html>
