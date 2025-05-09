@@ -276,6 +276,15 @@
         animation: pulse 2s infinite ease-in-out;
         opacity: 0.9;
       }
+      #onlineIndicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background-color: red;
+        box-shadow: 0 0 4px red;
+        animation: pulse 2s infinite ease-in-out;
+        opacity: 0.9;
+      }
 
       @keyframes pulse {
         0%,
@@ -328,6 +337,38 @@
         scrollbar-width: thin;
         scrollbar-color: rgba(100, 100, 100, 0.3) transparent;
       }
+
+      .info-card {
+        background-color: #3e444a;
+        border-radius: 10px;
+        padding: 15px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .info-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      }
+      .card-icon img {
+        width: 40px;
+        height: 40px;
+      }
+      .card-content {
+        display: flex;
+        flex-direction: column;
+      }
+      .card-title {
+        font-size: 0.9em;
+        color: #ccc;
+      }
+      .card-value {
+        font-size: 1.4em;
+        font-weight: bold;
+        color: #f5f5f5;
+      }
     </style>
   </head>
   <body>
@@ -355,6 +396,19 @@
       🔳 Fullscreen
     </button>
     <div class="container">
+      <div class="info-card">
+        <div class="card-icon">
+          <img
+            src="https://cdn.runepixels.com/m=avatar-rs/Andtank/chat.png"
+            alt="Ícone"
+          />
+          <div id="onlineIndicator"></div>
+        </div>
+        <div class="card-content">
+          <!-- <div class="card-title">Kills</div>
+          <div class="card-value">235</div> -->
+        </div>
+      </div>
       <div id="slayerWrapper" class="table-wrapper">
         <div class="table-title">Slayer</div>
         <div class="table-content">
@@ -436,43 +490,53 @@
           <div style="flex: 0 0 50%">
             <div class="buffs-container">
               <img
-                src="img/aura.png"
-                alt="Aura"
-                style="width: 30px; height: 30px"
-              />
-              <img
                 src="img/corruption.png"
                 alt="Corruption"
+                data-buff="corruption"
                 style="width: 30px; height: 30px"
               />
               <img
                 src="img/darkness.png"
                 alt="Darkness"
+                data-buff="darkness"
+                style="width: 30px; height: 30px"
+              />
+
+              <img
+                src="img/bonfire.png"
+                alt="Bonfire"
+                data-buff="bonfireBoost"
                 style="width: 30px; height: 30px"
               />
               <img
                 src="img/ovl.png"
                 alt="OVL"
+                data-buff="elderOverload"
                 style="width: 30px; height: 30px"
               />
               <img
                 src="img/renewal.png"
                 alt="Renewal"
+                data-buff="prayerRenewActive"
                 style="width: 30px; height: 30px"
               />
               <img
                 src="img/ss.png"
                 alt="SS"
+                data-buff="soulSplit"
                 style="width: 30px; height: 30px"
               />
+
               <img
                 src="img/summon.png"
                 alt="Summon"
+                data-buff="summon"
                 style="width: 30px; height: 30px"
               />
               <img
-                src="img/bonfire.png"
-                alt="Bonfire"
+                src="img/aura.png"
+                alt="Aura"
+                data-buff="aura"
                 style="width: 30px; height: 30px"
               />
             </div>
@@ -552,12 +616,36 @@
       socket.on("disconnect", () => {
         wsIndicator.style.backgroundColor = "red";
         wsIndicator.style.boxShadow = "0 0 8px red";
+        const onlineIndicator = document.getElementById("onlineIndicator");
+
+        onlineIndicator.style.backgroundColor = "red";
+        onlineIndicator.style.boxShadow = "0 0 8px red";
       });
 
-      socket.on("updateCurrentStats", ({ hp, dren, pray }) => {
-        document.getElementById("hpBar").style.width = `${hp * 100}%`;
-        document.getElementById("drenBar").style.width = `${dren * 100}%`;
-        document.getElementById("prayBar").style.width = `${pray * 100}%`;
+      socket.on("updateCurrentStats", ({ hp, dren, pray, buffs }) => {
+        const hpBar = document.getElementById("hpBar");
+        const drenBar = document.getElementById("drenBar");
+        const prayBar = document.getElementById("prayBar");
+
+        hpBar.style.width = `${hp * 100}%`;
+        drenBar.style.width = `${dren * 100}%`;
+        prayBar.style.width = `${pray * 100}%`;
+
+        document.querySelectorAll("img[data-buff]").forEach((img) => {
+          const buffKey = img.getAttribute("data-buff");
+          const isActive = buffs[buffKey];
+
+          const filter = isActive ? "none" : "grayscale(100%)";
+          const opacity = isActive ? "1" : "0.3";
+
+          if (img.style.filter !== filter) img.style.filter = filter;
+          if (img.style.opacity !== opacity) img.style.opacity = opacity;
+        });
+
+        const onlineIndicator = document.getElementById("onlineIndicator");
+
+        onlineIndicator.style.backgroundColor = "green";
+        onlineIndicator.style.boxShadow = "0 0 8px green";
       });
 
       socket.on("inventoryUpdate", function (data) {
