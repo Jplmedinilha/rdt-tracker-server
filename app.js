@@ -220,8 +220,7 @@ io.on("connection", (socket) => {
       }
     }
 
-    console.log("Valor total da mochila:", totalValue.toLocaleString());
-    lastData = { ...data, totalValue };
+    lastData = { ...data, totalValue: parsePriceBack(totalValue) };
 
     io.emit("inventoryUpdate", lastData);
   });
@@ -259,6 +258,20 @@ function parsePrice(priceRaw) {
   }
 
   return 0; // fallback
+}
+
+function parsePriceBack(value) {
+  if (typeof value !== "number" || isNaN(value)) return "0";
+
+  if (value >= 1_000_000_000) {
+    return (value / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + "b";
+  } else if (value >= 1_000_000) {
+    return (value / 1_000_000).toFixed(1).replace(/\.0$/, "") + "m";
+  } else if (value >= 1_000) {
+    return (value / 1_000).toFixed(1).replace(/\.0$/, "") + "k";
+  } else {
+    return value.toString();
+  }
 }
 
 function delay(ms) {

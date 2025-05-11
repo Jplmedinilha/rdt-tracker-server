@@ -70,44 +70,50 @@ socket.on("inventoryUpdate", function (data) {
   updateTable("serenTable", data.seren);
   updateLog("logTable", data.log);
 
-  //  confetes
-  confetti({
-    particleCount: 150,
-    spread: 70,
-    origin: { y: 0.6 },
-  });
+  document.getElementById("totalGp").innerHTML = data.totalValue;
 
-  if (data.log[0].itemName == "Hazelmere's signet ring") {
-    const sound = document.getElementById("hsrSound");
-    sound.currentTime = 0;
-    sound.play().catch((e) => console.warn("Som bloqueado:", e));
-    setInterval(() => {
-      confetti({
-        particleCount: 500,
-        spread: 150,
-        origin: { y: 0.9 },
-      });
-    }, 3000);
-    notifyMe("Brooooooooooooooo HSR LMAO", false, "img/hsr.png");
-  } else {
-    if (somAtivo) {
-      const sound = document.getElementById("coinSound");
+  if (!data.first) {
+    //  confetes
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 },
+    });
+
+    if (data.log[0].itemName == "Hazelmere's signet ring") {
+      const sound = document.getElementById("hsrSound");
       sound.currentTime = 0;
       sound.play().catch((e) => console.warn("Som bloqueado:", e));
+      setInterval(() => {
+        confetti({
+          particleCount: 500,
+          spread: 150,
+          origin: { y: 0.9 },
+        });
+      }, 3000);
+      notifyMe("Brooooooooooooooo HSR LMAO", false, "img/hsr.png");
+    } else {
+      if (somAtivo) {
+        const sound = document.getElementById("coinSound");
+        sound.currentTime = 0;
+        sound.play().catch((e) => console.warn("Som bloqueado:", e));
+      }
+
+      const img = data.slayer[data.log[0].itemName]?.img ?? "rdt.png";
+
+      notifyMe(
+        `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
+        true,
+        `img/${img}`
+      );
     }
-
-    const img = data.slayer[data.log[0].itemName]?.img ?? "rdt.png";
-
-    notifyMe(
+    showToast(
       `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
-      true,
-      `img/${img}`
+      30000
     );
+  } else {
+    showToast(`Total data loaded: ${data.log.length}`, 5000);
   }
-  showToast(
-    `Andtank received ${data.log[0].quantity}x ${data.log[0].itemName}`,
-    30000
-  );
 });
 
 function updateBar(valor) {
