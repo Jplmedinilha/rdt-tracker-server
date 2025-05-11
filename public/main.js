@@ -12,6 +12,9 @@ function notifyMe(msg, silent = true, img = "img/rdt.png") {
   }
 }
 
+let lastOnline = null;
+const onlineIndicator = document.getElementById("onlineIndicator");
+
 let token = "meu_token_secreto";
 
 let somAtivo = false;
@@ -59,10 +62,10 @@ socket.on("updateCurrentStats", ({ hp, dren, pray, buffs }) => {
     if (img.style.opacity !== opacity) img.style.opacity = opacity;
   });
 
-  const onlineIndicator = document.getElementById("onlineIndicator");
-
   onlineIndicator.style.backgroundColor = "green";
   onlineIndicator.style.boxShadow = "0 0 8px green";
+
+  lastOnline = new Date();
 });
 
 socket.on("inventoryUpdate", function (data) {
@@ -358,3 +361,20 @@ window.addEventListener("load", () => {
     autoScroll();
   }
 });
+
+// online check thread
+
+function checkLastOnline() {
+  const currentTime = new Date();
+  const timeDiff = (currentTime - lastOnline) / 1000;
+
+  if (timeDiff > 10) {
+    onlineIndicator.style.backgroundColor = "red";
+    onlineIndicator.style.boxShadow = "0 0 8px red";
+  } else {
+    onlineIndicator.style.backgroundColor = "green";
+    onlineIndicator.style.boxShadow = "0 0 8px green";
+  }
+}
+
+setInterval(checkLastOnline, 5000);
