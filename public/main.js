@@ -18,7 +18,8 @@ const onlineIndicator = document.getElementById("onlineIndicator");
 let token = "meu_token_secreto";
 
 let somAtivo = false;
-const ws_url = "https://rdt-tracker-server.onrender.com";
+// const ws_url = "https://rdt-tracker-server.onrender.com";
+const ws_url = "https://rdt-tracker-server-jk22.onrender.com";
 // const ws_url = "http://10.18.60.60:3000";
 const socket = io(ws_url, {
   query: {
