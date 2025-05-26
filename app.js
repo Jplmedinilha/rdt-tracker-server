@@ -182,6 +182,11 @@ const rdtMaster = [
 let lastData = {};
 
 const app = express();
+
+app.get("/getData", (req, res) => {
+  res.json(lastData.log);
+});
+
 app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
